@@ -1,1 +1,161 @@
-"use strict";let e={};module.exports=e;const t=require("../../console");let r={};function i(e){return new Promise(function(t,r){let i=new window.XMLHttpRequest;i.open("GET",e,!0),i.onreadystatechange=function(n){if(4!==i.readyState)return;-1===[0,200,304].indexOf(i.status)?r(new Error(`While loading from url ${e} server responded with a status of ${i.status}`)):t(n.target.response)},i.send(null)})}function n(e,i){return void 0===i?(t.error(`Failed to load resource: ${e}`),r[e]=void 0,void 0):(r[e]=i,i)}function o(e,i){return void 0===i?(t.error(`Failed to load stylesheet: ${e}`),r[e]=void 0,void 0):(i+=`\n//# sourceURL=${e}`,r[e]=i,i)}function s(e,i){if(void 0===i)return t.error(`Failed to load script: ${e}`),r[e]=void 0,void 0;i+=`\n//# sourceURL=${e}`;let n=window.eval(i);return r[e]=n,n}e.getResource=function(e){return r[e]},e.importStylesheet=function(e){let t=r[e];return void 0!==t?new Promise(function(e){e(t)}):i(e).then(o.bind(this,e),o.bind(this,e,void 0))},e.importStylesheets=function(r){if(!Array.isArray(r))return t.error("Call to `importStylesheets` failed. The`urls` parameter must be an array"),void 0;let i=[];for(let t=0;t<r.length;++t){let n=r[t];i.push(e.importStylesheet(n))}return Promise.all(i)},e.loadGlobalScript=function(e,t){let r=document.createElement("script");r.type="text/javascript",r.onload=function(){t&&t()},r.src=e,document.head.appendChild(r)},e.importScript=function(e){let t=r[e];return void 0!==t?new Promise(function(e){e(t)}):i(e).then(s.bind(this,e),s.bind(this,e,void 0))},e.importScripts=function(r){if(!Array.isArray(r))return t.error("Call to `importScripts` failed. The`urls` parameter must be an array"),void 0;let i=[];for(let t=0;t<r.length;++t){let n=r[t];i.push(e.importScript(n))}return Promise.all(i)},e.importTemplate=function(e){let t=r[e];return void 0!==t?new Promise(function(e){e(t)}):i(e).then(n.bind(this,e),n.bind(this,e,void 0))},e.importResource=function(e){let t=r[e];return void 0!==t?new Promise(function(e){e(t)}):i(e).then(n.bind(this,e),n.bind(this,e,void 0))};
+"use strict";
+const e = require("fire-path");
+let t = {};
+module.exports = t;
+const r = require("../../console");
+let o = {};
+function i(e) {
+  return new Promise(function (t, r) {
+    let o = new window.XMLHttpRequest();
+    o.open("GET", e, true);
+
+    o.onreadystatechange = function (i) {
+      if (4 !== o.readyState) {
+        return;
+      }
+
+      if (-1 === [0, 200, 304].indexOf(o.status)) {
+        r(
+              new Error(
+                `While loading from url ${e} server responded with a status of ${o.status}`
+              )
+            );
+      } else {
+        t(i.target.response);
+      }
+    };
+
+    o.send(null);
+  });
+}
+function n(e, t) {
+  return void 0 === t
+    ? (r.error(`Failed to load resource: ${e}`), (o[e] = void 0), void 0)
+    : ((o[e] = t), t);
+}
+function l(e, t) {
+  return void 0 === t
+    ? (r.error(`Failed to load stylesheet: ${e}`), (o[e] = void 0), void 0)
+    : ((t += `\n//# sourceURL=${e}`), (o[e] = t), t);
+}
+function s(e, t) {
+  if (void 0 === t) {
+    r.error(`Failed to load script: ${e}`);
+    o[e] = void 0;
+    return;
+  }
+  t += `\n//# sourceURL=${e}`;
+  let i = window.eval(t);
+  o[e] = i;
+  return i;
+}
+
+t.getResource = function (e) {
+  return o[e];
+};
+
+t.importStylesheet = function (e) {
+    let t = o[e];
+    return void 0 !== t
+      ? new Promise(function (e) {
+          e(t);
+        })
+      : i(e).then(l.bind(this, e), l.bind(this, e, void 0));
+  };
+
+t.importStylesheets = function (e) {
+    if (!Array.isArray(e)) {
+      r.error(
+        "Call to `importStylesheets` failed. The`urls` parameter must be an array"
+      );
+
+      return;
+    }
+    let o = [];
+    for (let r = 0; r < e.length; ++r) {
+      let i = e[r];
+      o.push(t.importStylesheet(i));
+    }
+    return Promise.all(o);
+  };
+
+t.loadGlobalScript = function (e, t) {
+  let r = document.createElement("script");
+  r.type = "text/javascript";
+
+  r.onload = function () {
+    if (t) {
+      t();
+    }
+  };
+
+  r.src = e;
+  document.head.appendChild(r);
+};
+
+t.importScript = function (t) {
+    let n = o[t];
+    if (void 0 !== n) {
+      return new Promise(function (e) {
+        e(n);
+      });
+    }
+    try {
+      let l = t;
+
+      if (!e.isAbsolute(t)) {
+        l = Editor.url(t);
+      }
+
+      n = require(l);
+
+      if (0 === Object.keys(n).length &&
+        global.__temp_panel_proto_) {
+        n = global.__temp_panel_proto_;
+        global.__temp_panel_proto_ = void 0;
+      }
+
+      return void 0 === n
+        ? i(t).then(s.bind(this, t), s.bind(this, t, void 0))
+        : new Promise(function (e) {
+        o[t] = n;
+        e(n);
+      });
+    } catch (e) {
+      r.error(`Failed to load script: ${t}`);
+    }
+  };
+
+t.importScripts = function (e) {
+    if (!Array.isArray(e)) {
+      r.error(
+        "Call to `importScripts` failed. The`urls` parameter must be an array"
+      );
+
+      return;
+    }
+    let o = [];
+    for (let r = 0; r < e.length; ++r) {
+      let i = e[r];
+      o.push(t.importScript(i));
+    }
+    return Promise.all(o);
+  };
+
+t.importTemplate = function (e) {
+    let t = o[e];
+    return void 0 !== t
+      ? new Promise(function (e) {
+          e(t);
+        })
+      : i(e).then(n.bind(this, e), n.bind(this, e, void 0));
+  };
+
+t.importResource = function (e) {
+    let t = o[e];
+    return void 0 !== t
+      ? new Promise(function (e) {
+          e(t);
+        })
+      : i(e).then(n.bind(this, e), n.bind(this, e, void 0));
+  };

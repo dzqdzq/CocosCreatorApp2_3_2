@@ -1,1 +1,28 @@
-"use strict";const e=require("./utils"),t=require("../utils/resource-mgr"),i=require("../utils/dom-utils"),s=require("../behaviors/focusable"),r=require("../behaviors/disable"),n=require("../behaviors/button-state");module.exports=e.registerElement("ui-button",{behaviors:[s,r,n],template:'\n    <div class="inner">\n      <content></content>\n    </div>\n  ',style:t.getResource("theme://elements/button.css"),factoryImpl(e){e&&(this.innerText=e)},ready(){this._initFocusable(this),this._initDisable(!1),this._initButtonState(this)},_onButtonClick(){setTimeout(()=>{i.fire(this,"confirm",{bubbles:!1})},1)}});
+"use strict";
+const e = require("./utils");
+const t = require("../utils/resource-mgr");
+const i = require("../utils/dom-utils");
+const s = require("../behaviors/focusable");
+const r = require("../behaviors/disable");
+const u = require("../behaviors/button-state");
+
+module.exports = e.registerElement("ui-button", {
+  behaviors: [s, r, u],
+  template: '\n    <div class="inner">\n      <slot></slot>\n    </div>\n  ',
+  style: t.getResource("theme://elements/button.css"),
+  factoryImpl(e) {
+    if (e) {
+      this.innerText = e;
+    }
+  },
+  ready() {
+    this._initFocusable(this);
+    this._initDisable(false);
+    this._initButtonState(this);
+  },
+  _onButtonClick() {
+    setTimeout(() => {
+      i.fire(this, "confirm", { bubbles: true });
+    }, 1);
+  },
+});
