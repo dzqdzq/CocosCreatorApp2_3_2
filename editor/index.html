@@ -23,7 +23,7 @@
     <link rel="stylesheet" href="./lib/windows/static/style/footer.css">
 </head>
 
-<body class="layout vertical">
+<body class="layout vertical" style="height: 100%">
 
     <!-- 启动前的进度条页面 -->
     <div id="launch" class="layout vertical fit">
@@ -139,7 +139,7 @@
 
         <!-- 信息栏 -->
         <div class="info">
-
+            <div class="im-info-area" v-html="imHtml"></div>
             <ui-button class="small"
                 :title="_t('EDITOR_MAIN.open_app')"
                 @click="_onOpenApp($event)"
@@ -147,7 +147,7 @@
                 <i class="fa fa-folder-open"></i>
                 {{_t('EDITOR_MAIN.open_app_button')}}
             </ui-button>
-            
+
             <ui-button class="small"
                 :title="_t('EDITOR_MAIN.open_project')"
                 @click="_onOpenProject($event)"
