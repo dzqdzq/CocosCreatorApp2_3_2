@@ -1,90 +1,94 @@
 (function () {
+  function boot() {
+    window.__quick_compile_project__.destPath = { tempScriptsPath };
 
-    function boot () {
-        window.__quick_compile_project__.destPath = {tempScriptsPath};
+    cc.assetManager.init({
+      importBase: { importPath },
+      nativeBase: { nativePath },
+    });
 
-        if ( !_CCSettings.debug ) {
-            // retrieve minified raw assets
-            var rawAssets = _CCSettings.rawAssets;
-            var assetTypes = _CCSettings.assetTypes;
-            for (var mount in rawAssets) {
-                var entries = rawAssets[mount];
-                for (var uuid in entries) {
-                    var entry = entries[uuid];
-                    var type = entry[1];
-                    if (typeof type === 'number') {
-                        entry[1] = assetTypes[type];
-                    }
-                }
-            }
+    var onStart = function () {
+      cc.view.resizeWithBrowserSize(true);
+
+      // init assets
+
+      // load stashed scene, unlike the standard loading process, here we do some hack to reduce the engine size.
+      cc.assetManager.loadAny(
+        { url: "preview-scene.json", __isNative__: false },
+        null,
+        function (err, sceneAsset) {
+          if (err) {
+            cc.error(err.message, err.stack);
+            return;
+          }
+          var scene = sceneAsset.scene;
+          scene._name = sceneAsset._name;
+          // HACK: Change key to uuid from url
+          cc.assetManager.dependUtil._depends.add(
+            scene._id,
+            cc.assetManager.dependUtil._depends.get("preview-scene.json")
+          );
+          // scene._id = ??;   stashed scene dont have uuid...
+          cc.director.runSceneImmediate(scene, function () {
+            // play game
+            cc.game.resume();
+          });
         }
+      );
 
-        // init engine
-        var canvas, div;
-        var AssetOptions = {
-            libraryPath: {libraryPath},
-            rawAssetsBase: {rawAssetsBase},
-            rawAssets: _CCSettings.rawAssets
-        };
+      _CCSettings = undefined;
+    };
 
-        cc.AssetLibrary.init(AssetOptions);
+    var option = {
+      debugMode: cc.debug.DebugMode.INFO,
+      showFPS: true,
+      frameRate: 60,
+      groupList: _CCSettings.groupList,
+      collisionMatrix: _CCSettings.collisionMatrix,
+    };
 
-        var onStart = function () {
-            cc.view.resizeWithBrowserSize(true);
+    var RESOURCES = cc.AssetManager.BuiltinBundleName.RESOURCES;
+    var INTERNAL = cc.AssetManager.BuiltinBundleName.INTERNAL;
+    var MAIN = cc.AssetManager.BuiltinBundleName.MAIN;
+    var bundleRoot = [INTERNAL];
 
-            // init assets
-
-            // load stashed scene, unlike the standard loading process, here we do some hack to reduce the engine size.
-            cc.loader.load('preview-scene.json', function (error, json) {
-                if (error) {
-                    cc.error(error);
-                    return;
-                }
-                cc.AssetLibrary.loadJson(json,
-                    function (err, sceneAsset) {
-                        if (err) {
-                            cc.error(err);
-                            return;
-                        }
-                        var scene = sceneAsset.scene;
-                        scene._name = sceneAsset._name;
-                        // scene._id = ??;   stashed scene dont have uuid...
-                        cc.director.runSceneImmediate(scene, function () {
-                            // play game
-                            cc.game.resume();
-                        });
-                    }
-                );
-            });
-
-            // purge
-            //noinspection JSUndeclaredVariable
-            _CCSettings = undefined;
-        };
-
-        var jsList = _CCSettings.jsList || [];
-        jsList = jsList.map(function (x) { return AssetOptions.rawAssetsBase + x; });
-
-        var option = {
-            scenes: _CCSettings.scenes,
-            debugMode: cc.debug.DebugMode.INFO,
-            showFPS: true,
-            frameRate: 60,
-            groupList: _CCSettings.groupList,
-            collisionMatrix: _CCSettings.collisionMatrix,
-            jsList: jsList
-        };
-
-        cc.game.run(option, onStart);
+    if (_CCSettings.hasResourcesBundle) {
+      bundleRoot.push(RESOURCES);
     }
 
-    require({tempScriptsPath} + '__quick_compile__.js');
-    require('src/simulator-config.js');
-    require('src/settings.js');
-    require('src/cocos2d-jsb.js');
-    require('jsb-adapter/jsb-engine.js');
-    require('src/asset-record-pipe.js');
+    var count = 0;
+    function cb(err) {
+      if (err) {
+        return console.error(err);
+      }
+      count++;
+      if (count === bundleRoot.length + 1) {
+        cc.assetManager.loadBundle(MAIN, function (err) {
+          if (!err) {
+            cc.game.run(option, onStart);
+          }
+        });
+      }
+    }
 
-    boot();
+    cc.assetManager.loadScript(
+      _CCSettings.jsList.map(function (x) {
+        return { scriptPath } + x;
+      }),
+      cb
+    );
 
+    for (var i = 0; i < bundleRoot.length; i++) {
+      cc.assetManager.loadBundle(bundleRoot[i], cb);
+    }
+  }
+
+  require({ tempScriptsPath } + "__quick_compile__.js");
+  require("src/simulator-config.js");
+  require("src/settings.js");
+  require("src/cocos2d-jsb.js");
+  require("jsb-adapter/jsb-engine.js");
+  require("src/asset-record-pipe.js");
+
+  boot();
 })();

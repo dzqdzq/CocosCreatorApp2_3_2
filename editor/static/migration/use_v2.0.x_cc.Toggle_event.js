@@ -11,7 +11,5 @@
  */
 
 if (cc.Toggle) {
-    // Whether the 'toggle' and 'checkEvents' events are fired when 'toggle.check() / toggle.uncheck()' is called in the code
-    // 在代码中调用 'toggle.check() / toggle.uncheck()' 时是否触发 'toggle' 与 'checkEvents' 事件
-    cc.Toggle._triggerEventInScript_check = true;
+  cc.Toggle._triggerEventInScript_check = true;
 }

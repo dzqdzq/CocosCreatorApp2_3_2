@@ -42,8 +42,8 @@ html
     script(type='text/javascript' charset='utf-8' src='/socket.io/socket.io.js')
     script(type='text/javascript').
       window.__socket_io__ = window.io;
-      // window.CC_PHYSICS_CANNON = #{enableCannonPhysics};
-      // window.CC_PHYSICS_BUILTIN = #{enableBuiltinPhysics};
+      window.CC_PHYSICS_CANNON = #{enableCannonPhysics};
+      window.CC_PHYSICS_BUILTIN = #{enableBuiltinPhysics};
 
     if enableDebugger
       script(type='text/javascript' charset='utf-8' src='app/node_modules/vconsole/dist/vconsole.min.js')

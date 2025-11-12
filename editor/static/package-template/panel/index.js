@@ -17,21 +17,21 @@ Editor.Panel.extend({
 
   // element and variable binding
   $: {
-    btn: '#btn',
-    label: '#label',
+    btn: "#btn",
+    label: "#label",
   },
 
   // method executed when template and styles are successfully loaded and initialized
-  ready () {
-    this.$btn.addEventListener('confirm', () => {
-      Editor.Ipc.sendToMain('package-template:clicked');
+  ready() {
+    this.$btn.addEventListener("confirm", () => {
+      Editor.Ipc.sendToMain("package-template:clicked");
     });
   },
 
   // register your ipc messages here
   messages: {
-    'package-template:hello' (event) {
-      this.$label.innerText = 'Hello!';
-    }
-  }
+    "package-template:hello"(event) {
+      this.$label.innerText = "Hello!";
+    },
+  },
 });

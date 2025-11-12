@@ -1,27 +1,27 @@
-'use strict';
+"use strict";
 
 module.exports = {
-  load () {
+  load() {
     // execute when package loaded
   },
 
-  unload () {
+  unload() {
     // execute when package unloaded
   },
 
   // register your ipc messages here
   messages: {
-    'open' () {
+    open() {
       // open entry panel registered in package.json
-      Editor.Panel.open('package-template');
+      Editor.Panel.open("package-template");
     },
-    'say-hello' () {
-      Editor.log('Hello World!');
+    "say-hello"() {
+      Editor.log("Hello World!");
       // send ipc message to panel
-      Editor.Ipc.sendToPanel('package-template', 'package-template:hello');
+      Editor.Ipc.sendToPanel("package-template", "package-template:hello");
     },
-    'clicked' () {
-      Editor.log('Button clicked!');
-    }
+    clicked() {
+      Editor.log("Button clicked!");
+    },
   },
 };
