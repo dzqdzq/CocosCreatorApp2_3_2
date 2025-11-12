@@ -1,1 +1,1 @@
-module.exports={version:"",windows:{},panels:{},panelLabelWidth:{}};
+module.exports = { version: "", windows: {}, panels: {}, panelLabelWidth: {} };

@@ -231,3 +231,32 @@ input::selection {
     font-size: @massive - 0.2;
   }
 }
+:host([highlighted]) {
+  .type {
+    color: @green;
+    border-color: @green;
+  }
+
+  input {
+    background: @green;
+  }
+
+  .name {
+    background: @green;
+  }
+}
+
+:host([invalid]) {
+  .type {
+    color: @red;
+    border-color: @red;
+  }
+
+  input {
+    background: @red;
+  }
+
+  .name {
+    background: @red;
+  }
+}

@@ -1,1 +1,7 @@
-"use strict";"browser"===process.type?module.exports=require("./browser"):module.exports=require("./renderer");
+"use strict";
+
+if ("browser" === process.type) {
+  module.exports = require("./browser");
+} else {
+  module.exports = require("./renderer");
+}

@@ -1,19 +1,10 @@
+"use strict";
 const e = require("electron");
-const t = require("fire-url");
+const fireUrl = require("fire-url");
 const i = require("fire-fs");
 const n = require("lodash");
 const s = require("events");
-const c = require("./editor");
-const v = require("./protocol");
-const y = require("../app");
-const m = require("../profile");
-const W = require("./console");
-const g = require("./menu");
-const b = require("./ipc");
-const _ = require("./package");
-
-const { BrowserWindow, ipcMain } = e;
-
+const o = e.BrowserWindow;
 const a = "1.1.1";
 const r = 100;
 let l = [];
@@ -22,78 +13,74 @@ let h = "";
 let u = null;
 let w = [];
 const p = "auto";
+
 class f extends s {
   constructor(t, s) {
     super();
     s = s || {};
 
     n.defaultsDeep(s, {
-        windowType: "dockable",
-        width: 400,
-        height: 300,
-        acceptFirstMouse: true,
-        disableAutoHideCursor: true,
-        backgroundColor: "#333",
-        webPreferences: {
-          enableRemoteModule: true,
-          contextIsolation: false,
-          nodeIntegration: true,
-          webviewTag: true,
-          backgroundThrottling: false,
-          preload: v.url("editor-framework://renderer.js"),
-        },
-        defaultFontSize: 13,
-        defaultMonospaceFontSize: 13,
-      });
+      windowType: "dockable",
+      width: 400,
+      height: 300,
+      acceptFirstMouse: true,
+      disableAutoHideCursor: true,
+      backgroundColor: "#333",
+      webPreferences: {
+        enableRemoteModule: true,
+        contextIsolation: false,
+        nodeIntegration: true,
+        webviewTag: true,
+        backgroundThrottling: false,
+        preload: v.url("editor-framework://renderer.js"),
+      },
+      defaultFontSize: 13,
+      defaultMonospaceFontSize: 13,
+    });
 
     this._loaded = false;
     this._currentSessions = {};
     this._panels = [];
     this._layout = null;
-
-    if (d) {
+    this.closing = false;
+    if (
+      (d)
+    ) {
       let e = d.get("windows");
 
       if (e && e[t]) {
         this._layout = e[t].layout;
       }
     }
-
-    this.name = t;
-    this.hideWhenBlur = false;
-    this.windowType = s.windowType;
-    this.save = s.save;
-
-    if (typeof this.save != "boolean") {
-      this.save = true;
-    }
-
-    switch (this.windowType) {
-      case "dockable": {
+    switch (
+      ((this.name = t),
+      (this.hideWhenBlur = false),
+      (this.windowType = s.windowType),
+      (this.save = s.save),
+      "boolean" != typeof this.save && (this.save = true),
+      this.windowType)
+    ) {
+      case "dockable":
         s.resizable = true;
         s.alwaysOnTop = false;
         break;
-      }
-      case "float": {
+      case "float":
         s.resizable = true;
         s.alwaysOnTop = true;
         break;
-      }
-      case "fixed-size": {
+      case "fixed-size":
         s.resizable = false;
         s.alwaysOnTop = true;
         break;
-      }
-      case "quick": {
+      case "quick":
         s.resizable = true;
         s.alwaysOnTop = true;
         this.hideWhenBlur = true;
-      }
     }
-
-    this.nativeWin = new BrowserWindow(s);
-
-    if (s.x === undefined && s.y === undefined && f.main) {
+    this.nativeWin = new o(s);
+    if (
+      (void 0 === s.x && void 0 === s.y && f.main)
+    ) {
       let t = e.screen.getDisplayMatching(f.main.nativeWin.getBounds());
       let i = this.nativeWin.getSize();
       let n = 0.5 * (t.workArea.width - i[0]);
@@ -102,10 +89,11 @@ class f extends s {
       s = Math.floor(s);
 
       if (n < 0 || s < 0) {
-        this.nativeWin.setPosition(t.workArea.x, t.workArea.y),
-          setImmediate(() => {
-            this.nativeWin.center();
-          });
+        this.nativeWin.setPosition(t.workArea.x, t.workArea.y);
+
+        setImmediate(() => {
+          this.nativeWin.center();
+        });
       } else {
         this.nativeWin.setPosition(n, s);
       }
@@ -117,14 +105,16 @@ class f extends s {
 
     this.nativeWin.on("focus", () => {
       if (!y.focused) {
-        (y.focused = true), y.emit("focus");
+        y.focused = true;
+        y.emit("focus");
       }
     });
 
     this.nativeWin.on("blur", () => {
       setImmediate(() => {
-        if (!BrowserWindow.getFocusedWindow()) {
-          (y.focused = false), y.emit("blur");
+        if (!o.getFocusedWindow()) {
+          y.focused = false;
+          y.emit("blur");
         }
       });
 
@@ -134,8 +124,11 @@ class f extends s {
     });
 
     this.nativeWin.on("close", (e) => {
-      if (this.windowType === "quick") {
-        e.preventDefault(), this.nativeWin.hide();
+      this.closing = true;
+
+      if ("quick" === this.windowType) {
+        e.preventDefault();
+        this.nativeWin.hide();
       }
 
       f._saveWindowStates();
@@ -153,7 +146,9 @@ class f extends s {
       this._currentSessions = {};
 
       if (this.isMainWindow) {
-        f.removeWindow(this), (f.main = null), c._quit();
+        f.removeWindow(this);
+        f.main = null;
+        c._quit();
       } else {
         f.removeWindow(this);
       }
@@ -196,15 +191,15 @@ class f extends s {
     let s = v.url(e);
     if (!s) {
       W.error(`Failed to load page ${e} for window "${this.name}"`);
-      return undefined;
+      return;
     }
     this._url = e;
     this._loaded = false;
-    let o = n ? encodeURIComponent(JSON.stringify(n)) : undefined;
+    let o = n ? encodeURIComponent(JSON.stringify(n)) : void 0;
     if (i.existsSync(s)) {
-      s = t.format({ protocol: "file", pathname: s, slashes: true, hash: o });
+      s = fireUrl.format({ protocol: "file", pathname: s, slashes: true, hash: o });
       this.nativeWin.loadURL(s);
-      return undefined;
+      return;
     }
 
     if (o) {
@@ -250,34 +245,39 @@ class f extends s {
   adjust(t, i, n, s) {
     let o = false;
 
-    if (typeof t != "number") {
-      (o = true), (t = 0);
+    if ("number" != typeof t) {
+      o = true;
+      t = 0;
     }
 
-    if (typeof i != "number") {
-      (o = true), (i = 0);
+    if ("number" != typeof i) {
+      o = true;
+      i = 0;
     }
 
-    if (typeof n != "number" || n <= 0) {
-      (o = true), (n = 800);
+    if (("number" != typeof n || n <= 0)) {
+      o = true;
+      n = 800;
     }
 
-    if (typeof s != "number" || s <= 0) {
-      (o = true), (s = 600);
+    if (("number" != typeof s || s <= 0)) {
+      o = true;
+      s = 600;
     }
 
     let a = e.screen.getDisplayMatching({ x: t, y: i, width: n, height: s });
     this.nativeWin.setSize(n, s);
     this.nativeWin.setPosition(a.workArea.x, a.workArea.y);
+    if (
+      (!o)
+    ) {
+      let e = a.workArea;
+      let s = e.x + r;
+      let l = e.y;
+      let d = e.x + (e.width - r);
+      let h = e.y + (e.height - r);
 
-    if (!o) {
-      let a_workArea = a.workArea;
-      let s = a_workArea.x + r;
-      let a_workArea_y = a_workArea.y;
-      let d = a_workArea.x + (a_workArea.width - r);
-      let h = a_workArea.y + (a_workArea.height - r);
-
-      if (t + n <= s || t >= d || i <= a_workArea_y || i >= h) {
+      if ((t + n <= s || t >= d || i <= l || i >= h)) {
         o = true;
       }
     }
@@ -304,7 +304,8 @@ class f extends s {
     }
 
     if (n) {
-      b._closeAllSessions(), this.send("editor:reset-layout", n, true, t);
+      b._closeAllSessions();
+      this.send("editor:reset-layout", n, true, t);
     }
   }
   emptyLayout() {
@@ -314,28 +315,28 @@ class f extends s {
   _send(...e) {
     let t = this.nativeWin.webContents;
     return t
-      ? (t.send(...e), true)
+      ? (t.send.apply(t, e), true)
       : (W.error(
           `Failed to send "${e[0]}" to ${this.name} because web contents are not yet loaded`
         ),
         false);
   }
   _sendToPanel(e, t, ...i) {
-    if (typeof t != "string") {
+    if ("string" != typeof t) {
       W.error(`The message ${t} sent to panel ${e} must be a string`);
-      return undefined;
+      return;
     }
     let n = b._popReplyAndTimeout(i, b.debug);
     if (!n) {
       i = ["editor:ipc-main2panel", e, t, ...i];
 
-      if (this._send(...i) === false) {
+      if (false === this._send.apply(this, i)) {
         W.failed(
           `send message "${t}" to panel "${e}" failed, no response received.`
         );
       }
 
-      return undefined;
+      return;
     }
     let s = b._newSession(t, `${e}@main`, n.reply, n.timeout, this);
     this._currentSessions[s] = n.reply;
@@ -348,7 +349,7 @@ class f extends s {
       b.option({ sessionId: s, waitForReply: true, timeout: n.timeout }),
     ];
 
-    this._send(...i);
+    this._send.apply(this, i);
     return s;
   }
   _closeSession(e) {
@@ -357,7 +358,7 @@ class f extends s {
     }
   }
   _addPanel(e) {
-    if (!this._panels.includes(e)) {
+    if (-1 === this._panels.indexOf(e)) {
       this._panels.push(e);
     }
   }
@@ -372,21 +373,21 @@ class f extends s {
     this._panels = [];
   }
   send(e, ...t) {
-    if (typeof e != "string") {
+    if ("string" != typeof e) {
       W.error(`Send message failed for '${e}'. The message must be a string`);
-      return undefined;
+      return;
     }
     let i = b._popReplyAndTimeout(t, b.debug);
     if (!i) {
       t = [e, ...t];
 
-      if (this._send(...t) === false) {
+      if (false === this._send.apply(this, t)) {
         W.failed(
           `send message "${e}" to window failed. No response was received.`
         );
       }
 
-      return undefined;
+      return;
     }
     let n = b._newSession(
       e,
@@ -404,15 +405,15 @@ class f extends s {
       b.option({ sessionId: n, waitForReply: true, timeout: i.timeout }),
     ];
 
-    this._send(...t);
+    this._send.apply(this, t);
     return n;
   }
   popupMenu(e, t, i) {
-    if (t !== undefined) {
+    if (void 0 !== t) {
       t = Math.floor(t);
     }
 
-    if (i !== undefined) {
+    if (void 0 !== i) {
       i = Math.floor(i);
     }
 
@@ -452,31 +453,30 @@ class f extends s {
     return u;
   }
   static find(e) {
-    if (typeof e == "string") {
-      for (let i of l) {
+    if ("string" == typeof e) {
+      for (let t = 0; t < l.length; ++t) {
+        let i = l[t];
         if (i.name === e) {
           return i;
         }
       }
-
       return null;
     }
-    if (e instanceof BrowserWindow) {
-      for (let i of l) {
+    if (e instanceof o) {
+      for (let t = 0; t < l.length; ++t) {
+        let i = l[t];
         if (i.nativeWin === e) {
           return i;
         }
       }
-
       return null;
     }
-
-    for (let i of l) {
+    for (let t = 0; t < l.length; ++t) {
+      let i = l[t];
       if (i.nativeWin && i.nativeWin.webContents === e) {
         return i;
       }
     }
-
     return null;
   }
   static addWindow(e) {
@@ -486,7 +486,7 @@ class f extends s {
     let t = l.indexOf(e);
     if (-1 === t) {
       W.warn(`Cannot find window ${e.name}`);
-      return undefined;
+      return;
     }
     l.splice(t, 1);
   }
@@ -504,11 +504,12 @@ class f extends s {
   }
   static saveLabelWidth(e, t) {
     if (d) {
-      d.set(`panelLabelWidth.${e}`, t), d.save();
+      d.set(`panelLabelWidth.${e}`, t);
+      d.save();
     }
   }
   static _saveWindowStates(e) {
-    if (c.argv._command === "test") {
+    if ("test" === c.argv._command) {
       return;
     }
     if (!f.main) {
@@ -520,41 +521,48 @@ class f extends s {
     d.set("version", a);
     let t = d.get("panels") || [];
     let i = {};
-
-    for (let n of l) {
+    for (let e = 0; e < l.length; ++e) {
+      let n = l[e];
       let s = n.nativeWin.getBounds();
 
       if (n.save) {
-        s.width ||
-          (W.warn(
-            `Failed to commit window state. Invalid window width: ${s.width}`
-          ),
-          (s.width = 800)),
-          s.height ||
-            (W.warn(
+        if (!s.width) {
+          W.warn(
+                    `Failed to commit window state. Invalid window width: ${s.width}`
+                  );
+
+          s.width = 800;
+        }
+
+        if (!s.height) {
+          W.warn(
               `Failed to commit window state. Invalid window height ${s.height}`
-            ),
-            (s.height = 600)),
-          (i[n.name] = {
-            main: n.isMainWindow,
-            url: n._url,
-            windowType: n.windowType,
-            x: s.x,
-            y: s.y,
-            width: s.width,
-            height: s.height,
-            layout: n._layout,
-            panels: n._panels,
-          });
+            );
+
+          s.height = 600;
+        }
+
+        i[n.name] = {
+                main: n.isMainWindow,
+                url: n._url,
+                windowType: n.windowType,
+                x: s.x,
+                y: s.y,
+                width: s.width,
+                height: s.height,
+                layout: n._layout,
+                panels: n._panels,
+              };
       } else {
         i[n.name] = {};
       }
 
-      if (!n.isMainWindow && n.panels.length === 1) {
+      if (
+        (!n.isMainWindow && 1 === n.panels.length)
+      ) {
         t[n.panels[0]] = { x: s.x, y: s.y, width: s.width, height: s.height };
       }
     }
-
     d.set("windows", i);
     d.set("panels", t);
     d.save();
@@ -568,7 +576,8 @@ class f extends s {
     m.load(t, i);
 
     if ((d = m.load(e)).get("version") !== a) {
-      (i.version = a), d.set(null, i);
+      i.version = a;
+      d.set(null, i);
     }
   }
   static _restoreWindowStates(e) {
@@ -578,24 +587,36 @@ class f extends s {
       let i = d.get("windows");
       for (let e in i) {
         let n;
-        let i_e = i[e];
+        let s = i[e];
 
-        if (v.url(i_e.url)) {
-          i_e.main
-            ? ((t.show = false),
-              (t.windowType = i_e.windowType),
-              (n = new f(e, t)),
-              (f.main = n))
-            : (n = new f(e, { show: false, windowType: i_e.windowType })),
-            i_e.windowType === "simple" && (n._panels = i_e.panels),
-            !i_e.main &&
-              i_e.panels &&
-              i_e.panels.length &&
-              n.nativeWin.setMenuBarVisibility(false),
-            n.adjust(i_e.x, i_e.y, i_e.width, i_e.height),
-            i_e.main
-              ? (n.show(), n.load(i_e.url))
-              : w.push({ win: n, state: i_e });
+        if (v.url(s.url)) {
+          if (s.main) {
+            t.show = false;
+            t.windowType = s.windowType;
+            n = new f(e, t);
+            f.main = n;
+          } else {
+            n = new f(e, { show: false, windowType: s.windowType });
+          }
+
+          if ("simple" === s.windowType) {
+            n._panels = s.panels;
+          }
+
+          if (!s.main &&
+            s.panels &&
+            s.panels.length) {
+            n.nativeWin.setMenuBarVisibility(false);
+          }
+
+          n.adjust(s.x, s.y, s.width, s.height);
+
+          if (s.main) {
+            n.show();
+            n.load(s.url);
+          } else {
+            w.push({ win: n, state: s });
+          }
         }
       }
       if (f.main) {
@@ -607,26 +628,34 @@ class f extends s {
   }
 }
 module.exports = f;
+const c = require("./editor");
+const v = require("./protocol");
+const y = require("../app");
+const m = require("../profile");
+const W = require("./console");
+const g = require("./menu");
+const b = require("./ipc");
+const _ = require("./package");
+const S = e.ipcMain;
 
-ipcMain.on("editor:ready", () => {
-  while (w.length > 0) {
+S.on("editor:ready", () => {
+  for (; w.length > 0; ) {
     let e = w.pop();
-
-    let { win, state } = e;
-
-    let n = state.panels[0];
+    let t = e.win;
+    let i = e.state;
+    let n = i.panels[0];
     let s = _.panelInfo(n);
-    win.show();
+    t.show();
 
-    win.load(state.url, {
+    t.load(i.url, {
       panelID: n,
-      panelArgv: undefined,
+      panelArgv: void 0,
       engineSupport: s && s.engineSupport,
     });
   }
 });
 
-ipcMain.on("editor:window-open", (e, t, i, n) => {
+S.on("editor:window-open", (e, t, i, n) => {
   let s = new f(t, (n = n || {}));
   s.nativeWin.setMenuBarVisibility(false);
 
@@ -638,35 +667,35 @@ ipcMain.on("editor:window-open", (e, t, i, n) => {
   s.show();
 });
 
-ipcMain.on("editor:window-query-layout", (e) => {
-  let t = BrowserWindow.fromWebContents(e.sender);
+S.on("editor:window-query-layout", (e) => {
+  let t = o.fromWebContents(e.sender);
   let n = f.find(t);
   if (!n) {
     W.warn("Failed to query layout, cannot find the window.");
     e.reply();
-    return undefined;
+    return;
   }
-  let n_layout = n._layout;
-  if (n.isMainWindow && !n_layout) {
+  let s = n._layout;
+  if (n.isMainWindow && !s) {
     let e = v.url(h);
     if (i.existsSync(e)) {
       try {
-        n_layout = JSON.parse(i.readFileSync(e));
+        s = JSON.parse(i.readFileSync(e));
       } catch (e) {
         W.error(`Failed to load default layout: ${e.message}`);
-        n_layout = null;
+        s = null;
       }
     }
   }
-  e.reply(null, n_layout);
+  e.reply(null, s);
 });
 
-ipcMain.on("editor:window-save-layout", (e, t) => {
-  let i = BrowserWindow.fromWebContents(e.sender);
+S.on("editor:window-save-layout", (e, t) => {
+  let i = o.fromWebContents(e.sender);
   let n = f.find(i);
   if (!n) {
     W.warn("Failed to save layout, cannot find the window.");
-    return undefined;
+    return;
   }
   n._layout = t;
 
@@ -677,20 +706,20 @@ ipcMain.on("editor:window-save-layout", (e, t) => {
   });
 });
 
-ipcMain.on("editor:update-label-width", (e, t, i) => {
-  let n = BrowserWindow.fromWebContents(e.sender);
+S.on("editor:update-label-width", (e, t, i) => {
+  let n = o.fromWebContents(e.sender);
   if (!f.find(n)) {
     W.warn("Failed to save layout, cannot find the window.");
-    return undefined;
+    return;
   }
   f.saveLabelWidth(t, i);
 });
 
-ipcMain.on("editor:query-label-width", (e, t) => {
-  let i = BrowserWindow.fromWebContents(e.sender);
+S.on("editor:query-label-width", (e, t) => {
+  let i = o.fromWebContents(e.sender);
   if (!f.find(i)) {
     W.warn("Failed to save layout, cannot find the window.");
-    return undefined;
+    return;
   }
 
   if (e.reply) {
@@ -698,12 +727,12 @@ ipcMain.on("editor:query-label-width", (e, t) => {
   }
 });
 
-ipcMain.on("editor:window-focus", (e) => {
-  let t = BrowserWindow.fromWebContents(e.sender);
+S.on("editor:window-focus", (e) => {
+  let t = o.fromWebContents(e.sender);
   let i = f.find(t);
   if (!i) {
     W.warn("Failed to focus, cannot find the window.");
-    return undefined;
+    return;
   }
 
   if (!i.isFocused) {
@@ -711,22 +740,22 @@ ipcMain.on("editor:window-focus", (e) => {
   }
 });
 
-ipcMain.on("editor:window-load", (e, t, i) => {
-  let n = BrowserWindow.fromWebContents(e.sender);
+S.on("editor:window-load", (e, t, i) => {
+  let n = o.fromWebContents(e.sender);
   let s = f.find(n);
   if (!s) {
     W.warn("Failed to focus, cannot find the window.");
-    return undefined;
+    return;
   }
   s.load(t, i);
 });
 
-ipcMain.on("editor:window-resize", (e, t, i, n) => {
-  let s = BrowserWindow.fromWebContents(e.sender);
+S.on("editor:window-resize", (e, t, i, n) => {
+  let s = o.fromWebContents(e.sender);
   let a = f.find(s);
   if (!a) {
     W.warn("Failed to focus, cannot find the window.");
-    return undefined;
+    return;
   }
 
   if (n) {
@@ -736,21 +765,21 @@ ipcMain.on("editor:window-resize", (e, t, i, n) => {
   }
 });
 
-ipcMain.on("editor:window-center", (e) => {
-  let t = BrowserWindow.fromWebContents(e.sender);
+S.on("editor:window-center", (e) => {
+  let t = o.fromWebContents(e.sender);
   let i = f.find(t);
   if (!i) {
     W.warn("Failed to focus, cannot find the window.");
-    return undefined;
+    return;
   }
   i.nativeWin.center();
 });
 
-ipcMain.on("editor:window-inspect-at", (e, t, i) => {
-  let n = BrowserWindow.fromWebContents(e.sender);
+S.on("editor:window-inspect-at", (e, t, i) => {
+  let n = o.fromWebContents(e.sender);
   if (!n) {
     W.warn(`Failed to inspect at ${t}, ${i}, cannot find the window.`);
-    return undefined;
+    return;
   }
   n.inspectElement(t, i);
 
@@ -759,12 +788,12 @@ ipcMain.on("editor:window-inspect-at", (e, t, i) => {
   }
 });
 
-ipcMain.on("editor:window-remove-all-panels", (e) => {
-  let t = BrowserWindow.fromWebContents(e.sender);
+S.on("editor:window-remove-all-panels", (e) => {
+  let t = o.fromWebContents(e.sender);
   let i = f.find(t);
   if (!i) {
     e.reply();
-    return undefined;
+    return;
   }
   i._removeAllPanels();
   e.reply();
